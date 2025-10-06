@@ -27,11 +27,28 @@ class APIKeyViewModel(application: Application, apiKeyDatabase: APIKeyDatabase) 
     val apiKey: LiveData<String> = _apiKey
     val allAPIKey: LiveData<List<String>> = apiKeyDao.getAllAPI().asLiveData()
 
+    private val _baseUrl = MutableLiveData<String>()
+    val baseUrl: LiveData<String> = _baseUrl
+
+    private val _modelName = MutableLiveData<String>()
+    val modelName: LiveData<String> = _modelName
+
     private val scope = viewModelScope + Dispatchers.IO
 
     init {
-        val resultValue = sharedPreferences.getString("userAPIKey", defaultAPI)
-        _apiKey.value = resultValue!!
+        _apiKey.value = sharedPreferences.getString("userAPIKey", defaultAPI)!!
+        _baseUrl.value = sharedPreferences.getString("baseUrl", "")!!
+        _modelName.value = sharedPreferences.getString("modelName", "")!!
+    }
+
+    fun updateBaseUrl(url: String) {
+        sharedPreferences.edit().putString("baseUrl", url).apply()
+        _baseUrl.postValue(url)
+    }
+
+    fun updateModelName(name: String) {
+        sharedPreferences.edit().putString("modelName", name).apply()
+        _modelName.postValue(name)
     }
 
     fun addAPI(newApiKey: String) {

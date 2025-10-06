@@ -46,6 +46,9 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val defaultAPIKey = stringResource(R.string.system_key)
     val uriHandler = LocalUriHandler.current
 
+    val baseUrl = apiKeyViewModel.baseUrl.observeAsState("")
+    val modelName = apiKeyViewModel.modelName.observeAsState("")
+
     val annotatedLinkString: AnnotatedString = buildAnnotatedString {
         val annotStr = stringResource(R.string.create_api_key)
         val startIndex = 0
@@ -65,64 +68,86 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
         )
     }
 
-    LazyColumn(modifier = Modifier.fillMaxHeight()) {
-        itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
-            if (index == 0) {
-                Text(
-                    stringResource(R.string.default_key),
-                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
-                )
-            } else if (index == 1) {
-                Text(
-                    stringResource(R.string.user_key),
-                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
-                )
-            }
-            Card(
-                modifier = Modifier
-                    .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable {
-                        apiKeyViewModel.chooseAPI(item)
-                    },
-                colors = CardDefaults.cardColors(
-                    containerColor =
-                    if (item == selectedOption.value) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.inverseOnSurface
-                    }
-                ),
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Row(
-                    modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        modifier = Modifier.weight(1f).padding(5.dp),
-                        text = if (item != defaultAPIKey) {
-                            "sk-**********" + item.takeLast(4)
-                        } else {
-                            defaultAPIKey
-                        },
-                        color =
-                        if (item == selectedOption.value) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSecondaryContainer
-                        }
-                    )
+    Column {
+        OutlinedTextField(
+            value = baseUrl.value,
+            onValueChange = { apiKeyViewModel.updateBaseUrl(it) },
+            label = { Text("Base URL") },
+            placeholder = { Text("e.g., https://api.openai.com/v1/chat/completions") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 15.dp, end = 15.dp, top = 10.dp)
+        )
 
-                    if (item != defaultAPIKey) {
-                        IconButton(
-                            modifier = Modifier.size(42.dp).padding(3.dp),
-                            onClick = { apiKeyViewModel.deleteAPI(item) }
-                        ) {
-                            Icon(Icons.Rounded.Delete, contentDescription = "delete api")
+        OutlinedTextField(
+            value = modelName.value,
+            onValueChange = { apiKeyViewModel.updateModelName(it) },
+            label = { Text("Model Name") },
+            placeholder = { Text("e.g., gpt-3.5-turbo") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 10.dp)
+        )
+
+        LazyColumn(modifier = Modifier.fillMaxHeight()) {
+            itemsIndexed(listOf(defaultAPIKey) + allAPIKey.value) { index, item ->
+                if (index == 0) {
+                    Text(
+                        stringResource(R.string.default_key),
+                        modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+                    )
+                } else if (index == 1) {
+                    Text(
+                        stringResource(R.string.user_key),
+                        modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 10.dp)
+                    )
+                }
+                Card(
+                    modifier = Modifier
+                        .padding(start = 15.dp, end = 15.dp, top = 2.dp, bottom = 2.dp)
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable {
+                            apiKeyViewModel.chooseAPI(item)
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor =
+                        if (item == selectedOption.value) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.inverseOnSurface
+                        }
+                    ),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp).fillMaxWidth().fillMaxHeight(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f).padding(5.dp),
+                            text = if (item != defaultAPIKey) {
+                                "sk-**********" + item.takeLast(4)
+                            } else {
+                                defaultAPIKey
+                            },
+                            color =
+                            if (item == selectedOption.value) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            }
+                        )
+
+                        if (item != defaultAPIKey) {
+                            IconButton(
+                                modifier = Modifier.size(42.dp).padding(3.dp),
+                                onClick = { apiKeyViewModel.deleteAPI(item) }
+                            ) {
+                                Icon(Icons.Rounded.Delete, contentDescription = "delete api")
+                            }
                         }
                     }
                 }

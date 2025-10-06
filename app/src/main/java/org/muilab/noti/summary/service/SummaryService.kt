@@ -112,6 +112,7 @@ class SummaryService : Service(), LifecycleOwner {
                     .callTimeout(300, TimeUnit.SECONDS)
                     .build()
 
+                // Data classes for original proxy request
                 data class GPTRequest(val prompt: String, val content: String)
                 data class GPTRequestWithKey(
                     val prompt: String,
@@ -119,47 +120,87 @@ class SummaryService : Service(), LifecycleOwner {
                     val key: String
                 )
 
-                val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.system_key))!!
+                // Data classes for direct OpenAI request
+                data class OpenAIMessage(val role: String, val content: String)
+                data class OpenAIRequest(val model: String, val messages: List<OpenAIMessage>)
+                data class OpenAIResponseChoice(val message: OpenAIMessage)
+                data class OpenAIResponse(val choices: List<OpenAIResponseChoice>)
 
-                val requestURL = if (userAPIKey == getString(R.string.system_key)) {
-                    serverURL
-                } else {
-                    "$serverURL/key"
-                }
+
+                val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.system_key))!!
+                val baseUrl = apiPref.getString("baseUrl", "")!!
+                val modelName = apiPref.getString("modelName", "")!!
 
                 val postContent = getPostContent(summarizedNotifications)
                 val prompt = promptPref.getString(
                     "curPrompt",
-                    getString(R.string.default_summary_prompt)
+                    getString(R.ring.default_summary_prompt)
                 ) as String
                 Log.d("sendToServer", "current prompt: $prompt")
 
-                @Suppress("IMPLICIT_CAST_TO_ANY")
-                val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
-                    GPTRequest(prompt, postContent)
+                val request: Request
+
+                // If baseUrl is provided, use direct OpenAI-compatible request
+                if (baseUrl.isNotBlank() && modelName.isNotBlank() && userAPIKey != getString(R.string.system_key)) {
+                    val messages = listOf(
+                        OpenAIMessage("system", prompt),
+                        OpenAIMessage("user", postContent)
+                    )
+                    val openAIRequest = OpenAIRequest(modelName, messages)
+                    val postBody = Gson().toJson(openAIRequest)
+
+                    request = Request.Builder()
+                        .url(baseUrl)
+                        .post(postBody.toRequestBody(mediaType))
+                        .addHeader("Authorization", "Bearer $userAPIKey")
+                        .build()
                 } else {
-                    GPTRequestWithKey(prompt, postContent, userAPIKey)
+                    // Original logic using the proxy server
+                    val requestURL = if (userAPIKey == getString(R.string.system_key)) {
+                        serverURL
+                    } else {
+                        "$serverURL/key"
+                    }
+
+                    @Suppress("IMPLICIT_CAST_TO_ANY")
+                    val gptRequest = if (userAPIKey == getString(R.string.system_key)) {
+                        GPTRequest(prompt, postContent)
+                    } else {
+                        GPTRequestWithKey(prompt, postContent, userAPIKey)
+                    }
+                    val postBody = Gson().toJson(gptRequest)
+                    request = Request.Builder()
+                        .url(requestURL)
+                        .post(postBody.toRequestBody(mediaType))
+                        .build()
                 }
 
-                val postBody = Gson().toJson(gptRequest)
-
-                val request = Request.Builder()
-                    .url(requestURL)
-                    .post(postBody.toRequestBody(mediaType))
-                    .build()
 
                 try {
                     val submitTime = System.currentTimeMillis()
                     val response = client.newCall(request).execute()
                     if (response.isSuccessful) {
-                        val responseText =
-                            response.body?.string()?.replace("\\n", "\r\n")?.replace("\\", "")
+                        val responseBody = response.body?.string()
+                        var summary: String? = null
+
+                        if (baseUrl.isNotBlank() && modelName.isNotBlank() && userAPIKey != getString(R.string.system_key)) {
+                            // Parse OpenAI response
+                            val openAIResponse = Gson().fromJson(responseBody, OpenAIResponse::class.java)
+                            summary = openAIResponse.choices.firstOrNull()?.message?.content
+                        } else {
+                            // Parse original proxy response
+                            summary = responseBody?.replace("\\n", "\r\n")?.replace("\\", "")
                                 ?.removeSurrounding("\"")
-                        val summary = ChineseConverter.convert(
-                            responseText,
-                            ConversionType.S2TWP,
-                            applicationContext
-                        )
+                        }
+
+                        summary = summary?.let {
+                            ChineseConverter.convert(
+                                it,
+                                ConversionType.S2TWP,
+                                applicationContext
+                            )
+                        }
+
                         if (summary != null) {
 
                             if (userAPIKey == getString(R.string.system_key))
@@ -253,7 +294,8 @@ class SummaryService : Service(), LifecycleOwner {
                     logUserAction("genSummary", "ServerError", applicationContext)
                     responseStr = getString(SummaryResponse.SERVER_ERROR.message)
                 }
-            } else {
+            }
+            else {
                 responseStr = getString(SummaryResponse.NO_NOTIFICATION.message)
             }
             updateStatusText(responseStr)
