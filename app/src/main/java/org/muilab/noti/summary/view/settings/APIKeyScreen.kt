@@ -39,6 +39,7 @@ fun APIKeyScreen(context: Context, apiKeyViewModel: APIKeyViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val selectedOption = apiKeyViewModel.apiKey.observeAsState()
