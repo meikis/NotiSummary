@@ -134,7 +134,7 @@ class SummaryService : Service(), LifecycleOwner {
                 val postContent = getPostContent(summarizedNotifications)
                 val prompt = promptPref.getString(
                     "curPrompt",
-                    getString(R.ring.default_summary_prompt)
+                    getString(R.string.default_summary_prompt)
                 ) as String
                 Log.d("sendToServer", "current prompt: $prompt")
 
