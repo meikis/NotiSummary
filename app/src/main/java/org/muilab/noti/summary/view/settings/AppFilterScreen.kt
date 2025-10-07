@@ -34,7 +34,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import org.muilab.noti.summary.util.AppScope
-import org.muilab.noti.summary.util.uploadData
+
 import org.muilab.noti.summary.R
 import org.muilab.noti.summary.util.logUserAction
 
@@ -173,5 +173,5 @@ fun LogAppFilters(context: Context, appFilterMap: Map<String, Boolean>) {
     val userId = sharedPref.getString("user_id", "000").toString()
     val timestamp = System.currentTimeMillis()
     val appScope = AppScope(userId, timestamp, appFilterMap)
-    uploadData("appScope", appScope)
+    // uploadData("appScope", appScope)
 }

@@ -11,7 +11,7 @@ import org.muilab.noti.summary.R
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.model.Prompt
 import org.muilab.noti.summary.util.PromptAction
-import org.muilab.noti.summary.util.uploadData
+
 
 class PromptViewModel(application: Application, promptDatabase: PromptDatabase) :
     AndroidViewModel(application) {
@@ -80,6 +80,6 @@ class PromptViewModel(application: Application, promptDatabase: PromptDatabase) 
         val userId = sharedPref.getString("user_id", "000").toString()
         val timestamp = System.currentTimeMillis()
         val promptAction = PromptAction(userId, timestamp, action, history, newPrompt)
-        uploadData("promptAction", promptAction)
+        // uploadData("promptAction", promptAction)
     }
 }
