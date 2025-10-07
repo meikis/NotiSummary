@@ -30,12 +30,6 @@ class NotiListenerService: NotificationListenerService() {
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        CoroutineScope(Dispatchers.IO).launch {
-            val activeKeys = getActiveKeys()
-            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
-            val appFilter = getAppFilter(applicationContext)
-            getNotiDrawer(applicationContext, databaseNotifications, appFilter)
-        }
         val updateIntent = Intent("edu.mui.noti.summary.UPDATE_STATUS")
         sendBroadcast(
             updateIntent.apply {
@@ -129,12 +123,12 @@ class NotiListenerService: NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (!sbn.isOngoing && sbn.packageName != packageName) {
             insertNoti(sbn)
-            CoroutineScope(Dispatchers.IO).launch {
-                val activeKeys = getActiveKeys()
-                val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
-                val appFilter = getAppFilter(applicationContext)
-                getNotiDrawer(applicationContext, databaseNotifications, appFilter)
-            }
+            val updateIntent = Intent("edu.mui.noti.summary.UPDATE_STATUS")
+            sendBroadcast(
+                updateIntent.apply {
+                    setPackage(packageName)
+                }
+            )
         }
     }
 
@@ -198,12 +192,12 @@ class NotiListenerService: NotificationListenerService() {
         val newRemovedNotisJson = Gson().toJson(removedNotis)
         summarySharedPref.edit().putString("removedNotis", newRemovedNotisJson).apply()
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val activeKeys = getActiveKeys()
-            val databaseNotifications = getDatabaseNotifications(applicationContext, activeKeys)
-            val appFilter = getAppFilter(applicationContext)
-            getNotiDrawer(applicationContext, databaseNotifications, appFilter)
-        }
+        val updateIntent = Intent("edu.mui.noti.summary.UPDATE_STATUS")
+        sendBroadcast(
+            updateIntent.apply {
+                setPackage(packageName)
+            }
+        )
     }
 
     private fun insertNoti(sbn: StatusBarNotification) {
