@@ -26,6 +26,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.model.APIKeyEntity
 import org.muilab.noti.summary.view.component.NoPaddingAlertDialog
 import org.muilab.noti.summary.viewModel.APIKeyViewModel
 
@@ -76,7 +77,9 @@ fun APICreationLink() {
 @Composable
 fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
     val selectedOption = apiKeyViewModel.apiKey.observeAsState()
-    val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf(""))
+    val allAPIKey = apiKeyViewModel.allAPIKey.observeAsState(listOf())
+    val showEditDialog = remember { mutableStateOf(false) }
+    val selectedKeyToEdit = remember { mutableStateOf<APIKeyEntity?>(null) }
 
     Column {
         APICreationLink()
@@ -90,10 +93,12 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                         .clip(RoundedCornerShape(12.dp))
                         .clickable {
                             apiKeyViewModel.chooseAPI(item)
+                            selectedKeyToEdit.value = item
+                            showEditDialog.value = true
                         },
                     colors = CardDefaults.cardColors(
                         containerColor =
-                        if (item == selectedOption.value) {
+                        if (item.APIKey == selectedOption.value?.APIKey) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.inverseOnSurface
@@ -113,9 +118,9 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(5.dp),
-                            text = "sk-**********" + item.takeLast(4),
+                            text = "sk-**********" + item.APIKey.takeLast(4),
                             color =
-                            if (item == selectedOption.value) {
+                            if (item.APIKey == selectedOption.value?.APIKey) {
                                 MaterialTheme.colorScheme.onPrimaryContainer
                             } else {
                                 MaterialTheme.colorScheme.onSecondaryContainer
@@ -137,6 +142,10 @@ fun APIKeyList(apiKeyViewModel: APIKeyViewModel) {
             }
         }
     }
+
+    if (showEditDialog.value && selectedKeyToEdit.value != null) {
+        APIKeyEditDialog(showEditDialog, selectedKeyToEdit.value!!, apiKeyViewModel)
+    }
 }
 
 @Composable
@@ -144,6 +153,8 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
     val inputKey = remember { mutableStateOf("") }
+    val inputBaseUrl = remember { mutableStateOf("https://api.openai.com/v1/chat/completions") }
+    val inputModel = remember { mutableStateOf("gpt-3.5-turbo") }
 
     Box(
         modifier = Modifier
@@ -162,14 +173,18 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 
     val confirmAction = {
         if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
-            apiKeyViewModel.addAPI(inputKey.value)
+            apiKeyViewModel.addAPI(inputKey.value, inputBaseUrl.value, inputModel.value)
             inputKey.value = ""
+            inputBaseUrl.value = "https://api.openai.com/v1/chat/completions"
+            inputModel.value = "gpt-3.5-turbo"
             showDialog.value = false
         }
     }
 
     val dismissAction = {
         inputKey.value = ""
+        inputBaseUrl.value = "https://api.openai.com/v1/chat/completions"
+        inputModel.value = "gpt-3.5-turbo"
     }
 
     if (showDialog.value) {
@@ -183,7 +198,15 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
                 contentDescription = "key_icon",
             )
         }
-        APIKeyEditor(showDialog, inputKey, titleContent, confirmAction, dismissAction)
+        APIKeyEditor(
+            showDialog = showDialog,
+            apiKey = inputKey,
+            baseUrl = inputBaseUrl,
+            model = inputModel,
+            title = titleContent,
+            confirmAction = confirmAction,
+            dismissAction = dismissAction
+        )
     }
 }
 
@@ -191,7 +214,9 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 @Composable
 fun APIKeyEditor(
     showDialog: MutableState<Boolean>,
-    defaultPromptInTextBox: MutableState<String>,
+    apiKey: MutableState<String>,
+    baseUrl: MutableState<String>,
+    model: MutableState<String>,
     title: @Composable () -> Unit,
     confirmAction: () -> Unit,
     dismissAction: () -> Unit = {},
@@ -199,16 +224,34 @@ fun APIKeyEditor(
     NoPaddingAlertDialog(
         title = title,
         text = {
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp)
-                    .fillMaxWidth(),
-                singleLine = true,
-                value = defaultPromptInTextBox.value,
-                onValueChange = { defaultPromptInTextBox.value = it },
-                label = { Text(stringResource(R.string.api_key)) },
-                textStyle = MaterialTheme.typography.bodyLarge
-            )
+            Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp)) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    value = apiKey.value,
+                    onValueChange = { apiKey.value = it },
+                    label = { Text(stringResource(R.string.api_key)) },
+                    textStyle = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    value = baseUrl.value,
+                    onValueChange = { baseUrl.value = it },
+                    label = { Text("Base URL") },
+                    textStyle = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    value = model.value,
+                    onValueChange = { model.value = it },
+                    label = { Text("Model") },
+                    textStyle = MaterialTheme.typography.bodyLarge
+                )
+            }
         },
         confirmButton = {
             TextButton(
@@ -239,5 +282,36 @@ fun APIKeyEditor(
                 )
             }
         }
+    )
+}
+
+@Composable
+fun APIKeyEditDialog(
+    showDialog: MutableState<Boolean>,
+    apiKeyEntity: APIKeyEntity,
+    apiKeyViewModel: APIKeyViewModel
+) {
+    val apiKey = remember { mutableStateOf(apiKeyEntity.APIKey) }
+    val baseUrl = remember { mutableStateOf(apiKeyEntity.baseUrl) }
+    val model = remember { mutableStateOf(apiKeyEntity.model) }
+
+    val confirmAction = {
+        val updatedEntity = apiKeyEntity.copy(
+            APIKey = apiKey.value,
+            baseUrl = baseUrl.value,
+            model = model.value
+        )
+        apiKeyViewModel.updateAPI(updatedEntity)
+        showDialog.value = false
+    }
+
+    APIKeyEditor(
+        showDialog = showDialog,
+        apiKey = apiKey,
+        baseUrl = baseUrl,
+        model = model,
+        title = { Text("Edit API Key", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(16.dp)) },
+        confirmAction = confirmAction,
+        dismissAction = { showDialog.value = false }
     )
 }

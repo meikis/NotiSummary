@@ -33,6 +33,7 @@ import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
+import com.aallam.openai.client.OpenAIHost
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
 import io.ktor.util.network.UnresolvedAddressException
@@ -44,6 +45,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.muilab.noti.summary.MainActivity
 import org.muilab.noti.summary.R
+import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.model.NotiUnit
 import org.muilab.noti.summary.util.TAG
 import org.muilab.noti.summary.util.getAppFilter
@@ -118,22 +120,31 @@ class SummaryService : Service(), LifecycleOwner {
             updateStatusText(getString(SummaryResponse.GENERATING.message))
 
             var responseStr = ""
-            val userAPIKey = apiPref.getString("userAPIKey", getString(R.string.key_not_provided))!!
+            val userAPIKeyString = apiPref.getString("userAPIKey", getString(R.string.key_not_provided))!!
+
+            val apiKeyDao = APIKeyDatabase.getInstance(applicationContext).apiKeyDao()
+            val apiKeyEntity = apiKeyDao.getAPIKeyByAPI(userAPIKeyString)
+
+            if (apiKeyEntity == null) {
+                return@withContext getString(SummaryResponse.APIKEY_ERROR.message)
+            }
+
             val openAI = run {
                 val config = OpenAIConfig(
-                    userAPIKey,
+                    token = apiKeyEntity.APIKey,
+                    host = OpenAIHost(baseUrl = apiKeyEntity.baseUrl),
                     timeout = Timeout(15.minutes, 20.minutes, 25.minutes)
                 )
                 OpenAI(config)
             }
-            val modelChoice = summaryPref.getBoolean("model", false)
-            val model = if (modelChoice) "gpt-4" else "gpt-3.5-turbo-16k"
-            NOTI_THRESHOLD = if (modelChoice) 8000 else 16000
-            SUMMARY_THRESHOLD = if (modelChoice) 12000 else 24000
+
+            val model = apiKeyEntity.model
+            NOTI_THRESHOLD = if (model.contains("16k")) 16000 else if (model.contains("gpt-4")) 8000 else 4000
+            SUMMARY_THRESHOLD = if (model.contains("16k")) 24000 else if (model.contains("gpt-4")) 12000 else 6000
 
             if (!isNetworkConnected(applicationContext))
                 responseStr = getString(SummaryResponse.NETWORK_ERROR.message)
-            else if (summarizedNotifications.isNotEmpty() && userAPIKey != getString(R.string.key_not_provided)) {
+            else if (summarizedNotifications.isNotEmpty() && userAPIKeyString != getString(R.string.key_not_provided)) {
 
                 val postContent = getPostContent(summarizedNotifications)
                 postContent.forEach{ Log.d("len", "${it.length}") }
@@ -142,7 +153,7 @@ class SummaryService : Service(), LifecycleOwner {
                     getString(R.string.default_summary_prompt)
                 ) as String
 
-                Log.d(TAG, userAPIKey)
+                Log.d(TAG, userAPIKeyString)
                 val subSummaries = mutableListOf<String>()
                 for (chunk in postContent) {
                     val chatCompletionRequest = ChatCompletionRequest(
@@ -317,7 +328,7 @@ class SummaryService : Service(), LifecycleOwner {
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
 
-        val notificationManagerCompat = NotificationManagerCompat.from(applicationContext)
+        val notificationManagerCompat = NotificationManagerCompat.from(.applicationContext)
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
