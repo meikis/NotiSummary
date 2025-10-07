@@ -214,12 +214,7 @@ fun HomeScreen(
         ) {
             SubmitButton(screenWidth - 212.dp, sumViewModel, submitButtonState)
             Spacer(Modifier.size(50.dp))
-            val selectedKey by apiKeyViewModel.apiKey.observeAsState()
-            Text (
-                text = "${stringResource(R.string.using)}\n${selectedKey?.model ?: ""}",
-                modifier = Modifier.width(70.dp),
-                textAlign = TextAlign.Center,
-            )
+
         }
     }
 
