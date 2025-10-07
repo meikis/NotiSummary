@@ -2,8 +2,8 @@ package org.muilab.noti.summary.util
 
 import android.content.Context
 import android.util.Log
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+
+
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
@@ -173,7 +173,7 @@ fun logSummary(context: Context) {
         summaryLength,
         removedNotis
     )
-    uploadData("summary", summary)
+    // uploadData("summary", summary)
 }
 
 fun saveSummary(context: Context, summary: Summary) {
@@ -245,22 +245,7 @@ fun <T : Any> addTimeZone(data: T): MutableMap<String, Any?> {
     return document
 }
 
-inline fun <reified T : Any> uploadData(documentSet: String, document: T) {
 
-    val db = Firebase.firestore
-    val (userId, timestamp) = document.extractVariables() ?: Pair(String, String)
-    val documentId = "${userId}_$timestamp"
-
-    db.collection(documentSet)
-        .document(documentId)
-        .set(addTimeZone(document))
-        .addOnSuccessListener {
-            Log.d("Data Log", "Upload to set $documentSet with ID $documentId")
-        }
-        .addOnFailureListener { e ->
-            Log.w("Data Log", "Error adding context to Firestore", e)
-        }
-}
 
 fun logUserAction(type: String, actionName: String, context: Context, metadata: String = "") {
     val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
@@ -279,53 +264,55 @@ fun logUserAction(type: String, actionName: String, context: Context, metadata: 
 
 fun uploadUserAction(userActionDao: UserActionDao) {
 
-    Log.d("UserAction", "upload")
+    Log.d("UserAction", "upload (Firebase disabled)")
 
-    val db = Firebase.firestore
-    val batch = db.batch()
+    // val db = Firebase.firestore
+    // val batch = db.batch()
 
-    val userActions = userActionDao.getAllActions()
-    userActions.forEach { userAction ->
-        val docRef = db.collection("userAction").document(userAction.primaryKey)
-        batch.set(docRef, addTimeZone(userAction))
-    }
-    batch.commit()
-        .addOnSuccessListener {
-            Log.d("UserAction", "Uploaded user actions to Firestore")
-            CoroutineScope(Dispatchers.IO).launch {
-                userActionDao.deleteAll()
-            }
-        }
-        .addOnFailureListener {
-            Log.d("UserAction", "Failed to upload to Firestore")
-        }
+    // val userActions = userActionDao.getAllActions()
+    // userActions.forEach { userAction ->
+    //     val docRef = db.collection("userAction").document(userAction.primaryKey)
+    //     batch.set(docRef, addTimeZone(userAction))
+    // }
+    // batch.commit()
+    //     .addOnSuccessListener {
+    //         Log.d("UserAction", "Uploaded user actions to Firestore")
+    //         CoroutineScope(Dispatchers.IO).launch {
+    //             userActionDao.deleteAll()
+    //         }
+    //     }
+    //     .addOnFailureListener {
+    //         Log.d("UserAction", "Failed to upload to Firestore")
+    //     }
 }
 
 fun uploadNotifications(context: Context, notiUnits: ArrayList<NotiUnit>, drawerType: String, reason: String, filter: Map<String, Boolean>) {
 
-    val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
-    val userId = sharedPref.getString("user_id", "000").toString()
-    val summaryNotis = notiUnits.filter { it.pkgName in filter.keys }.map { SummaryNoti(it) }
-    val timestamp = System.currentTimeMillis()
-    val dateTime = getDateTime(timestamp)
-    val documentId = "${userId}_${timestamp}"
-    val document = hashMapOf(
-        "userId" to userId,
-        "timestamp" to timestamp,
-        "dateTime" to dateTime,
-        "reason" to reason,
-        "filter" to filter,
-        "summaryNotis" to summaryNotis
-    )
+    Log.d("Notifications", "upload (Firebase disabled)")
 
-    val db = Firebase.firestore
-    db.collection(drawerType)
-        .document(documentId)
-        .set(document)
-        .addOnSuccessListener {
-            Log.d("Data Log", "Upload to set $drawerType with ID $documentId")
-        }
-        .addOnFailureListener { e ->
-            Log.w("Data Log", "Error adding context to Firestore", e)
-        }
+    // val sharedPref = context.getSharedPreferences("user", Context.MODE_PRIVATE)
+    // val userId = sharedPref.getString("user_id", "000").toString()
+    // val summaryNotis = notiUnits.filter { it.pkgName in filter.keys }.map { SummaryNoti(it) }
+    // val timestamp = System.currentTimeMillis()
+    // val dateTime = getDateTime(timestamp)
+    // val documentId = "${userId}_${timestamp}"
+    // val document = hashMapOf(
+    //     "userId" to userId,
+    //     "timestamp" to timestamp,
+    //     "dateTime" to dateTime,
+    //     "reason" to reason,
+    //     "filter" to filter,
+    //     "summaryNotis" to summaryNotis
+    // )
+
+    // val db = Firebase.firestore
+    // db.collection(drawerType)
+    //     .document(documentId)
+    //     .set(document)
+    //     .addOnSuccessListener {
+    //         Log.d("Data Log", "Upload to set $drawerType with ID $documentId")
+    //     }
+    //     .addOnFailureListener { e ->
+    //         Log.w("Data Log", "Error adding context to Firestore", e)
+    //     }
 }
