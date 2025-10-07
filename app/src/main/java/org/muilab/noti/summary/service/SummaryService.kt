@@ -328,7 +328,7 @@ class SummaryService : Service(), LifecycleOwner {
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
 
-        val notificationManagerCompat = NotificationManagerCompat.from(.applicationContext)
+        val notificationManagerCompat = NotificationManagerCompat.from(applicationContext)
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
