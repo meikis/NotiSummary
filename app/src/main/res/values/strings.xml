@@ -26,7 +26,7 @@
     <string name="gen_msg">Generating summary, please wait…</string>
     <string name="no_noti_msg">There are no notifications on your phone at the moment.</string>
     <string name="network_err_msg">Unable to connect, please check your network settings.</string>
-    <string name="unknown_err_msg">Unknown error, please try again later.</string>
+    <string name="unknown_error_detail">Unknown error: %s. Please try again later.</string>
     <string name="server_err_msg">Server error, please try again later.</string>
     <string name="timeout_msg">The server is busy, please try again later.</string>
     <string name="key_msg">Please check if your API key is valid.</string>

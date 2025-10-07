@@ -207,7 +207,7 @@ class SummaryService : Service(), LifecycleOwner {
                         break
                     } catch (e: Exception) {
                         Log.d("Error", e.stackTraceToString())
-                        responseStr = getString(SummaryResponse.UNKNOWN_ERROR.message)
+                        responseStr = getString(R.string.unknown_error_detail, e.message ?: "")
                     }
                 }
                 if (subSummaries.size == 1)
