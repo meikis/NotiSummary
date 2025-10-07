@@ -32,7 +32,7 @@ enum class SummaryResponse(val message: Int) {
     TIMEOUT_ERROR(R.string.timeout_msg),
     APIKEY_ERROR(R.string.key_msg),
     QUOTA_ERROR(R.string.quota_msg),
-    UNKNOWN_ERROR(R.string.unknown_err_msg),
+    UNKNOWN_ERROR(R.string.unknown_error_detail),
 }
 
 @Composable
