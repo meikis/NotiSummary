@@ -80,9 +80,12 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
             CoroutineScope(Dispatchers.IO).launch {
                 val databaseNotifications = getDatabaseNotifications(context, activeKeys)
                 val appFilter = getAppFilter(context)
-                getNotiDrawer(context, databaseNotifications, appFilter)
+                val updatedNotiDrawer = getNotiDrawer(context, databaseNotifications, appFilter)
+
+                val json = Gson().toJson(updatedNotiDrawer)
+                sharedPreferences.edit().putString("notiDrawer", json).apply()
+                _notifications.postValue(updatedNotiDrawer)
             }
-            resetNotiDrawer()
         }
     }
 
