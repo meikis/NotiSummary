@@ -191,7 +191,7 @@ class MainActivity : ComponentActivity() {
                             }
                             val confirmAction = {
                                 val trimmedApiKey = inputKey.value.trim()
-                                if (trimmedApiKey.isNotEmpty() && trimmedApiKey.startsWith("sk-")) {
+                                if (trimmedApiKey.isNotEmpty()) {
                                     apiViewModel.addAPI(trimmedApiKey, inputBaseUrl.value, inputModel.value)
                                     inputKey.value = ""
                                     showDialog.value = false
