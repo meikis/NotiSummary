@@ -190,8 +190,9 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             val confirmAction = {
-                                if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
-                                    apiViewModel.addAPI(inputKey.value, inputBaseUrl.value, inputModel.value)
+                                val trimmedApiKey = inputKey.value.trim()
+                                if (trimmedApiKey.isNotEmpty() && trimmedApiKey.startsWith("sk-")) {
+                                    apiViewModel.addAPI(trimmedApiKey, inputBaseUrl.value, inputModel.value)
                                     inputKey.value = ""
                                     showDialog.value = false
                                     with(sharedPref.edit()) {
