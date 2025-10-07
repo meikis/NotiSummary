@@ -199,6 +199,8 @@ class MainActivity : ComponentActivity() {
                                         apply()
                                     }
                                     initStatus = "USER_PROVIDED_KEY"
+                                } else {
+                                    Toast.makeText(this, getString(R.string.invalid_api_key), Toast.LENGTH_SHORT).show()
                                 }
                             }
                             if (showDialog.value)
