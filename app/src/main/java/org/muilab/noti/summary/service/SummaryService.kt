@@ -11,9 +11,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.*
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.ktx.Firebase
+
 import com.google.gson.Gson
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
@@ -203,8 +201,7 @@ class SummaryService : Service(), LifecycleOwner {
 
                         if (summary != null) {
 
-                            if (userAPIKey == getString(R.string.system_key))
-                                subtractCredit()
+
                             logUserAction("genSummary", "Success", applicationContext)
 
                             with(summaryPref.edit()) {
@@ -305,19 +302,7 @@ class SummaryService : Service(), LifecycleOwner {
         }
     }
 
-    private fun subtractCredit() {
-        val sharedPref = getSharedPreferences("user", Context.MODE_PRIVATE)
-        val userId = sharedPref.getString("user_id", "000").toString()
 
-        val db = Firebase.firestore
-        val docRef = db.collection("user").document(userId)
-        docRef.get().addOnSuccessListener { document ->
-            if (document != null) {
-                val res = document.toObject<UserCredit>()!!
-                docRef.update("credit", res.credit - 1)
-            }
-        }
-    }
 
     override fun onCreate() {
         super.onCreate()

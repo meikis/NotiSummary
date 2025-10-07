@@ -14,11 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
 import androidx.core.app.NotificationManagerCompat
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.installations.FirebaseInstallations
-import com.google.firebase.ktx.Firebase
+
 import org.muilab.noti.summary.database.room.APIKeyDatabase
 import org.muilab.noti.summary.database.room.PromptDatabase
 import org.muilab.noti.summary.database.room.ScheduleDatabase
@@ -42,10 +38,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val settings = FirebaseFirestoreSettings.Builder()
-            .setPersistenceEnabled(true)
-            .build()
-        FirebaseFirestore.getInstance().firestoreSettings = settings
+
 
         val notiListenerIntent = Intent(this@MainActivity, NotiListenerService::class.java)
 
@@ -123,8 +116,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     "USER_INFO_FILLED" -> {
-                        if (setUserId())
-                            initStatus = "SHOW_FILTER_NOTICE"
+                        initStatus = "SHOW_FILTER_NOTICE"
                     }
                     "SHOW_FILTER_NOTICE" -> {
                         if (!isNotiListenerEnabled())
@@ -230,69 +222,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    private fun setUserId(): Boolean {
 
-        var initSuccess by remember { mutableStateOf(0) }
-
-        FirebaseInstallations.getInstance().id.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val userId: String = task.result
-                Log.v("userId", userId)
-
-                val sharedPref = this.getSharedPreferences("user", Context.MODE_PRIVATE)
-                val birthYear = sharedPref.getInt("birthYear", 0)
-                val gender = sharedPref.getString("gender", "Unknown").toString()
-                val country = sharedPref.getString("country", "Unknown").toString()
-                val source = sharedPref.getString("source", "Unknown").toString()
-                val initTime = System.currentTimeMillis()
-
-                val db = Firebase.firestore
-                val docRef = db.collection("user").document(userId)
-
-                docRef.get()
-                    .addOnSuccessListener { document ->
-                        if (document != null) {
-                            if (!document.exists()) {
-                                val userInfo = hashMapOf<String, Any>(
-                                    "userId" to userId,
-                                    "credit" to maxCredit,
-                                    "birthYear" to birthYear,
-                                    "gender" to gender,
-                                    "country" to country,
-                                    "source" to source,
-                                    "initTime" to initTime,
-                                    "dateTime" to getDateTime(initTime)
-                                )
-                                docRef.set(userInfo).addOnSuccessListener {
-                                    Log.d(
-                                        "Installations",
-                                        userInfo.toString()
-                                    )
-                                    with(sharedPref.edit()) {
-                                        putString("user_id", userId)
-                                        putString("initStatus", "SHOW_FILTER_NOTICE")
-                                        apply()
-                                    }
-                                    initSuccess = 1
-                                }
-                            }
-                        } else
-                            initSuccess = -1
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.d("Installations", "get failed with ", exception)
-                        initSuccess = -1
-                    }
-            } else {
-                Log.e("Installations", "Unable to get Installation ID")
-                initSuccess = -1
-            }
-        }
-        if (initSuccess == -1)
-            NetworkCheckDialog(applicationContext)
-        return initSuccess == 1
-    }
 
     private fun isNetworkConnected(): Boolean {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
