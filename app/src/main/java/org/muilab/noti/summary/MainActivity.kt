@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
                         Log.d(TAG, "USER_READY")
                         val showDialog = remember { mutableStateOf(true) }
                         val selectedOption = apiViewModel.apiKey.value
-                        if (selectedOption?.startsWith("sk-") == true) {
+                        if (selectedOption?.APIKey?.startsWith("sk-") == true) {
                             with(sharedPref.edit()) {
                                 putString("initStatus", "USER_PROVIDED_KEY")
                                 apply()
@@ -168,6 +168,9 @@ class MainActivity : ComponentActivity() {
                             }
 
                             val inputKey = remember { mutableStateOf("") }
+                            val inputBaseUrl = remember { mutableStateOf("https://api.openai.com/v1/chat/completions") }
+                            val inputModel = remember { mutableStateOf("gpt-3.5-turbo") }
+
                             val titleContent: @Composable () -> Unit = {
                                 Column {
                                     Image(
@@ -188,7 +191,7 @@ class MainActivity : ComponentActivity() {
                             }
                             val confirmAction = {
                                 if (inputKey.value != "" && inputKey.value.startsWith("sk-")) {
-                                    apiViewModel.addAPI(inputKey.value)
+                                    apiViewModel.addAPI(inputKey.value, inputBaseUrl.value, inputModel.value)
                                     inputKey.value = ""
                                     showDialog.value = false
                                     with(sharedPref.edit()) {
@@ -199,7 +202,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             if (showDialog.value)
-                                APIKeyEditor(showDialog, inputKey, titleContent, confirmAction)
+                                APIKeyEditor(
+                                    showDialog = showDialog,
+                                    apiKey = inputKey,
+                                    baseUrl = inputBaseUrl,
+                                    model = inputModel,
+                                    title = titleContent,
+                                    confirmAction = confirmAction
+                                )
                         }
                     }
                     "USER_PROVIDED_KEY" -> {
