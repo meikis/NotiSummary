@@ -210,11 +210,9 @@ fun HomeScreen(
         Row (
             Modifier.fillMaxWidth().padding(top = 0.dp, bottom = 30.dp, start = 16.dp, end = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.Center
         ) {
-            SubmitButton(screenWidth - 212.dp, sumViewModel, submitButtonState)
-            Spacer(Modifier.size(50.dp))
-
+            SubmitButton(180.dp, sumViewModel, submitButtonState)
         }
     }
 

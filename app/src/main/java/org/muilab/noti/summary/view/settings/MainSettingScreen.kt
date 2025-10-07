@@ -37,7 +37,7 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
     val isGroupTop = {item: SettingScreenItem ->
         item in listOf(SettingScreenItem.SettingPrompt, SettingScreenItem.SettingAPI)}
     val isGroupBottom = {item: SettingScreenItem ->
-        item in listOf(SettingScreenItem.SettingNotiFilter, SettingScreenItem.About)
+        item in listOf(SettingScreenItem.SettingNotiFilter)
     }
 
     MaterialTheme {
@@ -67,12 +67,6 @@ fun MainSettingScreen(context: Context, navController: NavHostController) {
                             )
                             .clickable {
                                 when (item.name) {
-                                    SettingScreenItem.Feedback.name -> {
-                                        uriHandler.openUri(context.getString(R.string.feedback_URL))
-                                    }
-                                    SettingScreenItem.About.name -> {
-                                        uriHandler.openUri(context.getString(R.string.github_URL))
-                                    }
                                     else -> { navController.navigate(item.name) }
                                 }
                             },
