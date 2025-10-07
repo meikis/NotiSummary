@@ -15,7 +15,7 @@ import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.zqc.opencc.android.lib.ChineseConverter
 import com.zqc.opencc.android.lib.ConversionType
-import io.github.cdimascio.dotenv.dotenv
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,12 +38,7 @@ class SummaryService : Service(), LifecycleOwner {
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
-    private val dotenv = dotenv {
-        directory = "./assets"
-        filename = "env"
-    }
-
-    private val serverURL = dotenv["SUMMARY_URL"]
+    private val serverURL = ""
     private val mediaType = "application/json; charset=utf-8".toMediaType()
 
     // Binder given to clients
