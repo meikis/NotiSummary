@@ -153,7 +153,7 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 
     val showDialog = remember { mutableStateOf(false) }
     val inputKey = remember { mutableStateOf("") }
-    val inputBaseUrl = remember { mutableStateOf("https://api.openai.com/v1/chat/completions") }
+    val inputBaseUrl = remember { mutableStateOf("https://api.openai.com/v1/") }
     val inputModel = remember { mutableStateOf("gpt-3.5-turbo") }
 
     Box(
@@ -183,7 +183,7 @@ fun AddKeyButton(apiKeyViewModel: APIKeyViewModel) {
 
     val dismissAction = {
         inputKey.value = ""
-        inputBaseUrl.value = "https://api.openai.com/v1/chat/completions"
+        inputBaseUrl.value = "https://api.openai.com/v1/"
         inputModel.value = "gpt-3.5-turbo"
     }
 
@@ -310,7 +310,7 @@ fun APIKeyEditDialog(
         apiKey = apiKey,
         baseUrl = baseUrl,
         model = model,
-        title = { Text("Edit API Key", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(16.dp)) },
+        title = { Text(stringResource(R.string.model_configuration), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(16.dp)) },
         confirmAction = confirmAction,
         dismissAction = { showDialog.value = false }
     )

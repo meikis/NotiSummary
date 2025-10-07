@@ -47,7 +47,7 @@ fun MainScreenView(
         Box(modifier = Modifier.padding(innerPadding)) {
             NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
                 composable(BottomNavItem.Home.screen_route) {
-                    HomeScreen(context, sumViewModel, promptViewModel)
+                    HomeScreen(context, sumViewModel, promptViewModel, apiKeyViewModel)
                 }
                 composable(BottomNavItem.Settings.screen_route) {
                     SettingsScreen(promptViewModel, apiKeyViewModel, scheduleViewModel, context)

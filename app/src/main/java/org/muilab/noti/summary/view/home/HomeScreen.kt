@@ -51,14 +51,14 @@ import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButtonMaterial3
 import org.muilab.noti.summary.R
-import org.muilab.noti.summary.viewModel.PromptViewModel
-import org.muilab.noti.summary.viewModel.SummaryViewModel
+import org.muilab.noti.summary.viewModel.APIKeyViewModel
 
 @Composable
 fun HomeScreen(
     context: Context,
     sumViewModel: SummaryViewModel,
-    promptViewModel: PromptViewModel
+    promptViewModel: PromptViewModel,
+    apiKeyViewModel: APIKeyViewModel
 ) {
 
     val (submitButtonState, setSubmitButtonState) = remember { mutableStateOf(SSButtonState.IDLE) }
@@ -179,15 +179,7 @@ fun HomeScreen(
                             modifier = Modifier.padding(start = 16.dp)
                         )
                         if (summaryCardState.value) {
-                            Spacer(modifier = Modifier.padding(16.dp))
-                            val apiSharedPref = context.getSharedPreferences("ApiPref", Context.MODE_PRIVATE)
-                            val userAPIKey = apiSharedPref.getString("userAPIKey", stringResource(R.string.key_not_provided))
-                            val displayAPIKey = "sk-**********${userAPIKey?.takeLast(4)}"
-                            val displayText = "${stringResource(R.string.using_ur_apikey)}\n$displayAPIKey"
-                            Text(
-                                text = displayText,
-                                style = MaterialTheme.typography.labelMedium,
-                            )
+                            
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         if (!summaryCardState.value)
@@ -219,7 +211,12 @@ fun HomeScreen(
         ) {
             SubmitButton(screenWidth - 212.dp, sumViewModel, submitButtonState)
             Spacer(Modifier.size(50.dp))
-            ModelToggle(context)
+            val selectedKey by apiKeyViewModel.apiKey.observeAsState()
+            Text (
+                text = "${stringResource(R.string.using)}\n${selectedKey?.model ?: ""}",
+                modifier = Modifier.width(70.dp),
+                textAlign = TextAlign.Center,
+            )
         }
     }
 
@@ -292,30 +289,4 @@ fun SubmitButton(
             buttonState = submitButtonState
         )
     }
-}
-
-@Composable
-fun ModelToggle(context: Context) {
-
-    val sharedPref = context.getSharedPreferences("SummaryPref", Context.MODE_PRIVATE)
-    val modelChoice = remember { mutableStateOf(sharedPref.getBoolean("model", false)) }
-
-    Switch(
-        modifier = Modifier.width(50.dp),
-        checked = modelChoice.value,
-        onCheckedChange = {
-            modelChoice.value = !modelChoice.value
-            with (sharedPref.edit()) {
-                putBoolean("model", modelChoice.value)
-                apply()
-            }
-        },
-    )
-    Spacer(Modifier.size(10.dp))
-    Text (
-        text = "${stringResource(R.string.using)}\n" +
-                if (modelChoice.value) { "GPT-4" } else { "GPT-3.5" },
-        modifier = Modifier.width(70.dp),
-        textAlign = TextAlign.Center,
-    )
 }

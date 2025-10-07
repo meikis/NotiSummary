@@ -8,6 +8,6 @@ data class APIKeyEntity(
     @PrimaryKey(autoGenerate = true)
     var primaryKey: Int = 0,
     var APIKey: String,
-    var baseUrl: String = "https://api.openai.com/v1/chat/completions",
+    var baseUrl: String = "https://api.openai.com/v1/",
     var model: String = "gpt-3.5-turbo",
 )

@@ -168,7 +168,7 @@ class MainActivity : ComponentActivity() {
                             }
 
                             val inputKey = remember { mutableStateOf("") }
-                            val inputBaseUrl = remember { mutableStateOf("https://api.openai.com/v1/chat/completions") }
+                            val inputBaseUrl = remember { mutableStateOf("https://api.openai.com/v1/") }
                             val inputModel = remember { mutableStateOf("gpt-3.5-turbo") }
 
                             val titleContent: @Composable () -> Unit = {

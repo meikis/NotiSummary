@@ -24,7 +24,7 @@ abstract class APIKeyDatabase : RoomDatabase() {
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE api_key_pool ADD COLUMN baseUrl TEXT NOT NULL DEFAULT 'https://api.openai.com/v1/chat/completions'")
+                database.execSQL("ALTER TABLE api_key_pool ADD COLUMN baseUrl TEXT NOT NULL DEFAULT 'https://api.openai.com/v1/'")
                 database.execSQL("ALTER TABLE api_key_pool ADD COLUMN model TEXT NOT NULL DEFAULT 'gpt-3.5-turbo'")
             }
         }
